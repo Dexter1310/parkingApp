@@ -131,11 +131,18 @@ public class MainActivity extends AppCompatActivity{
                 textDesti.setVisibility(View.VISIBLE);textDesti.setText("Eliminar aparcamiento\n "+addressDelete);
                 btnAction.setVisibility(View.VISIBLE);btnAction.setText("Elimina aparcamiento");btnAction.setBackgroundColor(Color.parseColor("#FF0000"));
                 btnClean.setVisibility(View.VISIBLE);btnClean.setText("Limpiar Historial");
-                btnClean.setOnClickListener(new View.OnClickListener() {
+                btnAction.setOnClickListener(new View.OnClickListener() {//limpia registro de aparcamiento
+                    @Override
+                    public void onClick(View view) {
+                        deleteList("https://transpilas.000webhostapp.com/appAparca/delete.php",addressDelete);
+
+                    }
+                });
+                btnClean.setOnClickListener(new View.OnClickListener() {//limpia historial
                     @Override
                     public void onClick(View view) {
 //                        Toast.makeText(MainActivity.this, matricula.getText().toString(), Toast.LENGTH_SHORT).show();
-//                        deleteList("https://transpilas.000webhostapp.com/appAparca/delete.php");
+                        deleteList("https://transpilas.000webhostapp.com/appAparca/delete.php","2");
                     }
                 });
                 return true;
@@ -281,7 +288,7 @@ public class MainActivity extends AppCompatActivity{
         StringRequest registroTurno=new StringRequest(Request.Method.POST, URL, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                Toast.makeText(MainActivity.this, "Matrícula: "+matricula.getText().toString()+ " guardada.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Matrícula: "+matricula.getText().toString()+ " registrada.", Toast.LENGTH_SHORT).show();
             }
         }, new Response.ErrorListener() {
             @Override
@@ -326,12 +333,20 @@ public class MainActivity extends AppCompatActivity{
         requestQueue.add(registroTurno);
     }
     //Todo:Delete list parking
-    public void deleteList(String URL){
+    public void deleteList(String URL,String del){
         StringRequest delete=new StringRequest(Request.Method.POST, URL, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                listaAparca.setVisibility(View.GONE);
-                Toast.makeText(MainActivity.this, "Historial Eliminado", Toast.LENGTH_SHORT).show();
+               if(del=="2"){
+                   Toast.makeText(MainActivity.this, "Historial Eliminado", Toast.LENGTH_SHORT).show();
+                   btnClean.setVisibility(View.GONE);btnAction.setVisibility(View.GONE); btn4.setVisibility(View.GONE);textDesti.setVisibility(View.GONE); listaAparca.setVisibility(View.GONE);
+               }else{
+                   Toast.makeText(MainActivity.this, "Se ha eliminado la dirección "+del, Toast.LENGTH_SHORT).show();
+
+
+               }
+
+
             }
         }, new Response.ErrorListener() {
             @Override
@@ -343,7 +358,7 @@ public class MainActivity extends AppCompatActivity{
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String,String> para=new HashMap<String,String>();
                 para.put("matricula",matricula.getText().toString());
-//                para.put("ubicacion",addAddres);
+                para.put("del",del);
                 return para;
             }
         };
@@ -361,7 +376,7 @@ public class MainActivity extends AppCompatActivity{
                         jsonObject = response.getJSONObject(i);
                         String matric= jsonObject.getString("matricula");
 
-                        if(matricula.getText().toString().equals(matric)){
+                        if(matricula.getText().toString().equals(matric)){//si la matricula esta en archivo vehiculo.json
                             cierto=1;
                         }
 

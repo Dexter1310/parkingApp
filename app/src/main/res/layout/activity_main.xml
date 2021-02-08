@@ -79,7 +79,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginVertical="1dp"
                         android:layout_marginRight="5dp"
-                        android:text="Salir"
+                        android:text="Salir"/>/
                         android:textColor="#EF6060"
                         app:backgroundTint="#FFFFFF"
                         app:layout_constraintEnd_toEndOf="parent"
@@ -193,12 +193,22 @@
                     tools:layout_editor_absoluteY="625dp" />
 
                 <Button
+                    android:id="@+id/btn_go"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginRight="7dp"
+                    android:layout_marginLeft="5dp"
+                    android:text="Ir al sitio" />
+
+                <Button
                     android:id="@+id/btnClean"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp"
                     android:text="Button"
-                    android:textSize="12sp"
+                    android:textSize="11sp"
                     app:backgroundTint="@color/purple_700"
                     tools:layout_editor_absoluteX="158dp"
                     tools:layout_editor_absoluteY="625dp" />

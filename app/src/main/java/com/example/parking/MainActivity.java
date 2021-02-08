@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity{
     GoogleMap googleMap;
     String address,marca;
     TextView in,textDesti;
-    Button salir,btn2,btn3,btn4,btn5,btnAction,btnClean;
+    Button salir,btn2,btn3,btn4,btn5,btnAction,btnClean,btngo;
     EditText matricula;
     List<Address> direccion;
     RequestQueue requestQueue;
@@ -85,6 +85,7 @@ public class MainActivity extends AppCompatActivity{
         btn5=(Button)findViewById(R.id.btn5);btn5.setVisibility(View.GONE);
         btn4=(Button)findViewById(R.id.btnOcultHistori);btn4.setVisibility(View.GONE);
         btnAction=(Button)findViewById(R.id.btnAction);btnAction.setVisibility(View.GONE);
+        btngo=(Button)findViewById(R.id.btn_go);btngo.setVisibility(View.GONE);
         btnClean=(Button)findViewById(R.id.btnClean);btnClean.setVisibility(View.GONE);
         matricula=(EditText)findViewById(R.id.matricula);
         matricula.setFilters(new InputFilter[] {new InputFilter.AllCaps()});//Mayusculas
@@ -118,8 +119,22 @@ public class MainActivity extends AppCompatActivity{
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 String addressSelect=listaAparcamiento.get(position);
                 textDesti.setVisibility(View.VISIBLE);textDesti.setText("Aparcamiento seleccionado\n "+addressSelect);
-                btnClean.setVisibility(View.GONE);
-                btnAction.setVisibility(View.VISIBLE);btnAction.setText("Ir al sitio");btnAction.setBackgroundColor(Color.parseColor("#4CAF50"));
+                btnClean.setVisibility(View.GONE);btnAction.setVisibility(View.GONE);
+                btngo.setVisibility(View.VISIBLE);
+                btngo.setBackgroundColor(Color.parseColor("#4CAF50"));
+                btngo.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+
+
+                        Intent mapa=new Intent(MainActivity.this,map.class);
+//                        mapa.putExtra("longitud", direccion.get(0).getLongitude());
+//                        mapa.putExtra("latitud", direccion.get(0).getLatitude());
+                        mapa.putExtra("matricula",matricula.getText().toString());
+                        mapa.putExtra("direc", addressSelect);
+                        startActivity(mapa);
+                    }
+                });
 
             }
         });
@@ -130,7 +145,7 @@ public class MainActivity extends AppCompatActivity{
                 String addressDelete=listaAparcamiento.get(position);
                 textDesti.setVisibility(View.VISIBLE);textDesti.setText("Eliminar aparcamiento\n "+addressDelete);
                 btnAction.setVisibility(View.VISIBLE);btnAction.setText("Elimina aparcamiento");btnAction.setBackgroundColor(Color.parseColor("#FF0000"));
-                btnClean.setVisibility(View.VISIBLE);btnClean.setText("Limpiar Historial");
+                btnClean.setVisibility(View.VISIBLE);btnClean.setText("Limpiar Historial");btngo.setVisibility(View.GONE);
                 btnAction.setOnClickListener(new View.OnClickListener() {//limpia registro de aparcamiento
                     @Override
                     public void onClick(View view) {
@@ -218,6 +233,7 @@ public class MainActivity extends AppCompatActivity{
         btn4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                btnClean.setVisibility(View.GONE);btnAction.setVisibility(View.GONE); textDesti.setVisibility(View.GONE);btngo.setVisibility(View.GONE);
                 btn4.setVisibility(View.GONE);btn2.setVisibility(View.VISIBLE);
                 listaAparca.setVisibility(View.GONE);lisA.clear();
             }
@@ -326,12 +342,18 @@ public class MainActivity extends AppCompatActivity{
                 Map<String,String> para=new HashMap<String,String>();
                 para.put("matricula",matricula.getText().toString());
                 para.put("ubicacion",address);
+                para.put("latitud", String.valueOf(direccion.get(0).getLatitude()));
+                para.put("longitud", String.valueOf(direccion.get(0).getLongitude()));
                 return para;
             }
         };
         requestQueue= Volley.newRequestQueue(this);
         requestQueue.add(registroTurno);
     }
+
+
+
+
     //Todo:Delete list parking
     public void deleteList(String URL,String del){
         StringRequest delete=new StringRequest(Request.Method.POST, URL, new Response.Listener<String>() {
@@ -342,7 +364,11 @@ public class MainActivity extends AppCompatActivity{
                    btnClean.setVisibility(View.GONE);btnAction.setVisibility(View.GONE); btn4.setVisibility(View.GONE);textDesti.setVisibility(View.GONE); listaAparca.setVisibility(View.GONE);
                }else{
                    Toast.makeText(MainActivity.this, "Se ha eliminado la dirección "+del, Toast.LENGTH_SHORT).show();
-
+                   int num = listaAparcamiento.size();
+                   historialAparcamiento("https://transpilas.000webhostapp.com/appAparca/vehiculo.json");//reload and update arrayList
+                   listaAparcamiento.clear();
+                   listaAparcamiento.addAll(listaAparcamiento);
+                   lisA.notifyDataSetChanged();
 
                }
 
@@ -418,6 +444,9 @@ public class MainActivity extends AppCompatActivity{
                     } catch (JSONException e) {
                         Toast.makeText(getApplicationContext(),e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
+                }
+                if(listaAparcamiento.size()==0){//si no hay registro en el archivo vehiculo.json  se ocultan
+                    btnClean.setVisibility(View.GONE);btnAction.setVisibility(View.GONE); btn4.setVisibility(View.GONE);textDesti.setVisibility(View.GONE); listaAparca.setVisibility(View.GONE);btngo.setVisibility(View.GONE);
                 }
             }
         }, new Response.ErrorListener() {

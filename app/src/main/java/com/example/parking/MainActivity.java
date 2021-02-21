@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity{
     ListView listaAparca;ArrayList<String>listaAparcamiento;
     ArrayAdapter lisA;
     GoogleMap googleMap;
-    String address,marca;
+    String address,marca,addressSelect,lat,lon;
     TextView in,textDesti;
     Button salir,btn2,btn3,btn4,btn5,btnAction,btnClean,btngo;
     EditText matricula;
@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity{
         listaAparca.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                String addressSelect=listaAparcamiento.get(position);
+                addressSelect=listaAparcamiento.get(position);
                 textDesti.setVisibility(View.VISIBLE);textDesti.setText("Aparcamiento seleccionado\n "+addressSelect);
                 btnClean.setVisibility(View.GONE);btnAction.setVisibility(View.GONE);
                 btngo.setVisibility(View.VISIBLE);
@@ -125,14 +125,7 @@ public class MainActivity extends AppCompatActivity{
                 btngo.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-
-
-                        Intent mapa=new Intent(MainActivity.this,map.class);
-//                        mapa.putExtra("longitud", direccion.get(0).getLongitude());
-//                        mapa.putExtra("latitud", direccion.get(0).getLatitude());
-                        mapa.putExtra("matricula",matricula.getText().toString());
-                        mapa.putExtra("direc", addressSelect);
-                        startActivity(mapa);
+                        go("https://transpilas.000webhostapp.com/appAparca/vehiculo.json");
                     }
                 });
 
@@ -274,16 +267,28 @@ public class MainActivity extends AppCompatActivity{
             @Override
             public void onClick(View v) {
 
-                Toast.makeText(getApplicationContext(),"Ubicación guardada latitud:"+direccion.get(0).getLatitude()+" longitud:"+
-                        direccion.get(0).getLongitude(), Toast.LENGTH_SHORT).show();
-                Intent mapa=new Intent(MainActivity.this,map.class);
-                Intent longitud = mapa.putExtra("longitud", direccion.get(0).getLongitude());
-                mapa.putExtra("latitud", direccion.get(0).getLatitude());
-                mapa.putExtra("matricula",matricula.getText().toString());
-                mapa.putExtra("direc", address);
+
                 //Todo: añadir en la tabla ubicación el destino nuevo con esa matricula.
-                insertUbicacion("https://transpilas.000webhostapp.com/appAparca/insertUbicacion.php");
-                startActivity(mapa);
+               String n= String.valueOf(listaAparcamiento.size());
+
+                if(listaAparcamiento.size()>10){//MAX PARKINGS FOR ENROLLMENT
+                    in.setTextColor(Color.parseColor("red"));
+                    in.setText("El aparcamiento no se ha registrado del V. "+matricula.getText()+", por favor elimine registro y vuelva a intentarlo.");
+                    Toast.makeText(MainActivity.this, "Ha alcanzado el límine de registros de aparcamientos en el historial." +
+                            "\nPuede borrar algún registro y continuar.", Toast.LENGTH_SHORT).show();
+                }else{
+                    Toast.makeText(getApplicationContext(),"Ubicación guardada latitud:"+direccion.get(0).getLatitude()+" longitud:"+
+                            direccion.get(0).getLongitude(), Toast.LENGTH_SHORT).show();
+                    Intent mapa=new Intent(MainActivity.this,map.class);
+                    Intent longitud = mapa.putExtra("longitud", direccion.get(0).getLongitude());
+                    mapa.putExtra("latitud", direccion.get(0).getLatitude());
+                    mapa.putExtra("matricula",matricula.getText().toString());
+                    mapa.putExtra("direc", address);
+                    insertUbicacion("https://transpilas.000webhostapp.com/appAparca/insertUbicacion.php");
+                    startActivity(mapa);
+                }
+
+
             }
         });
 
@@ -291,6 +296,7 @@ public class MainActivity extends AppCompatActivity{
         salir.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                finish();
                 Intent salir=new Intent(Intent.ACTION_MAIN);
                 salir.addCategory(Intent.CATEGORY_HOME);
                 salir.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -364,7 +370,7 @@ public class MainActivity extends AppCompatActivity{
                    btnClean.setVisibility(View.GONE);btnAction.setVisibility(View.GONE); btn4.setVisibility(View.GONE);textDesti.setVisibility(View.GONE); listaAparca.setVisibility(View.GONE);
                }else{
                    Toast.makeText(MainActivity.this, "Se ha eliminado la dirección "+del, Toast.LENGTH_SHORT).show();
-                   int num = listaAparcamiento.size();
+                   int num = listaAparcamiento.size();in.setText("Se ha eliminado la dirección "+del);in.setTextColor(Color.parseColor("blue"));
                    historialAparcamiento("https://transpilas.000webhostapp.com/appAparca/vehiculo.json");//reload and update arrayList
                    listaAparcamiento.clear();
                    listaAparcamiento.addAll(listaAparcamiento);
@@ -457,4 +463,47 @@ public class MainActivity extends AppCompatActivity{
         requestQueue= Volley.newRequestQueue(this);
         requestQueue.add(jsonArrayRequest);
     }
+
+   // TODO:Ir al sitio :
+    private   void go(String URL){
+        final JsonArrayRequest jsonArrayRequest=new JsonArrayRequest(URL, new Response.Listener<JSONArray>() {
+            @Override
+            public void onResponse(JSONArray response) {
+                JSONObject jsonObject=null;
+                for (int i = 0; i < response.length(); i++) {
+                    try {
+                        jsonObject = response.getJSONObject(i);
+                        String direc= jsonObject.getString("direccion");
+                        String matric= jsonObject.getString("matricula");
+                        String longitud=jsonObject.getString("longitud");
+                        String latitud=jsonObject.getString("latitud");
+                        if(matricula.getText().toString().equals(matric)){
+                            if(direc.equals(addressSelect)){
+                                Intent mapa=new Intent(MainActivity.this,map.class);
+                                mapa.putExtra("longitud",Double.parseDouble(longitud));
+                                mapa.putExtra("latitud",Double.parseDouble(latitud));
+                                mapa.putExtra("matricula",matricula.getText().toString());
+                                mapa.putExtra("direc", direc);
+                                startActivity(mapa);
+                            }
+
+                        }
+                    } catch (JSONException e) {
+                        Toast.makeText(getApplicationContext(),e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+            }
+        });
+        requestQueue= Volley.newRequestQueue(this);
+        requestQueue.add(jsonArrayRequest);
+    }
+
+
+
+
 }

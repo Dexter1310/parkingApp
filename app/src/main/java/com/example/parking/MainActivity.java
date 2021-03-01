@@ -3,12 +3,12 @@ package com.example.parking;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -26,9 +26,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -54,17 +54,18 @@ import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity{
-    ImageView aparca;
+    ImageView aparca,imgParking;
     MapView mapa;
     ListView listaAparca;ArrayList<String>listaAparcamiento;
     ArrayAdapter lisA;
     GoogleMap googleMap;
     String address,marca,addressSelect,lat,lon;
-    TextView in,textDesti;
+    TextView in,textDesti,inParking;
     Button salir,btn2,btn3,btn4,btn5,btnAction,btnClean,btngo;
     EditText matricula;
     List<Address> direccion;
     RequestQueue requestQueue;
+    ScrollView init;
 
     private final int respuest=0;
     int cierto;
@@ -76,12 +77,15 @@ public class MainActivity extends AppCompatActivity{
         setContentView(R.layout.activity_main);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        init=(ScrollView)findViewById(R.id.init);
+        imgParking=(ImageView)findViewById(R.id.ImgParking);imgParking.setVisibility(View.GONE);
         aparca=(ImageView)findViewById(R.id.ImgAparca);aparca.setVisibility(View.GONE);
         in=(TextView)findViewById(R.id.informa);in.setVisibility(View.GONE);
+        inParking=(TextView)findViewById(R.id.informaParking);inParking.setVisibility(View.GONE);
         textDesti=(TextView)findViewById(R.id.textDestinity);textDesti.setVisibility(View.GONE);
         salir=(Button)findViewById(R.id.btnSalir);
         btn2=(Button)findViewById(R.id.btn2);btn2.setText("ayuda");
-        btn3=(Button)findViewById(R.id.btn3);
+        btn3=(Button)findViewById(R.id.btn3);btn3.setVisibility(View.GONE);
         btn5=(Button)findViewById(R.id.btn5);btn5.setVisibility(View.GONE);
         btn4=(Button)findViewById(R.id.btnOcultHistori);btn4.setVisibility(View.GONE);
         btnAction=(Button)findViewById(R.id.btnAction);btnAction.setVisibility(View.GONE);
@@ -100,13 +104,20 @@ public class MainActivity extends AppCompatActivity{
             }
         });
 
+//        Drawable fondo=getResources().getDrawable(R.drawable.parking_3);
+//        init.setBackground(fondo);
+
         if(marca!=null){
-            matricula.setVisibility(View.GONE);in.setVisibility(View.VISIBLE);
-            in.setText("ÚLTIMO APARCAMIENTO  DE "+getIntent().getStringExtra("matricula")+"\n\n"+marca);
-            btn2.setText("Nuevo aparcamiento");
+            matricula.setText(getIntent().getStringExtra("matricula"));
+            aparca.setVisibility(View.VISIBLE);
+            matricula.setVisibility(View.GONE);in.setVisibility(View.VISIBLE);String mat=getIntent().getStringExtra("matricula");
+            in.setText(mat+ " APARCADO EN \n\n"+marca);
+            btn2.setText("Otro vehículo");
+            historialAparcamiento("https://transpilas.000webhostapp.com/appAparca/vehiculo.json");
             btn2.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    aparca.setVisibility(View.GONE);listaAparca.setVisibility(View.GONE);btngo.setVisibility(View.GONE);textDesti.setVisibility(View.GONE);
                     matricula.setVisibility(View.VISIBLE);in.setVisibility(View.GONE);
                     matricula.setText(getIntent().getStringExtra("matricula"));
                 }
@@ -188,9 +199,9 @@ public class MainActivity extends AppCompatActivity{
                             //consulta si existe la matricula en json si no hacer el insert:
                             consulta("https://transpilas.000webhostapp.com/appAparca/vehiculo.json");
 
-                            aparca.setVisibility(View.VISIBLE);
-                            btn3.setText("AYUDA");btn2.setText("historial");
-                            in.setText(matricula.getText().toString() + " Pulse P al aparcar.");
+                            aparca.setVisibility(View.VISIBLE);inParking.setVisibility(View.VISIBLE);imgParking.setVisibility(View.VISIBLE);
+                            btn3.setText("AYUDA");btn2.setText("historial");btn2.setVisibility(View.VISIBLE);
+                            in.setText(matricula.getText().toString() + " Pulse P para aparcar en vía pública.");
                             btn5.setVisibility(View.VISIBLE);btn5.setText("Nueva matrícula");
                             btn5.setOnClickListener(new View.OnClickListener() {
                                 @Override
@@ -242,8 +253,6 @@ public class MainActivity extends AppCompatActivity{
                 public void onSuccess( Location location) {
                     // Got last known location. In some rare situations this can be null.
                     if (location != null) {
-//                                diEntra="latitud: "+location.getLatitude() +"longitud: "+location.getLongitude();
-//                                diSale="latitud: "+location.getLatitude() +"longitud: "+location.getLongitude();
                         Geocoder geo;
 
                         geo = new Geocoder(getApplicationContext());
@@ -277,8 +286,8 @@ public class MainActivity extends AppCompatActivity{
                     Toast.makeText(MainActivity.this, "Ha alcanzado el límine de registros de aparcamientos en el historial." +
                             "\nPuede borrar algún registro y continuar.", Toast.LENGTH_SHORT).show();
                 }else{
-                    Toast.makeText(getApplicationContext(),"Ubicación guardada latitud:"+direccion.get(0).getLatitude()+" longitud:"+
-                            direccion.get(0).getLongitude(), Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(getApplicationContext(),"Ubicación guardada latitud:"+direccion.get(0).getLatitude()+" longitud:"+
+//                            direccion.get(0).getLongitude(), Toast.LENGTH_SHORT).show();
                     Intent mapa=new Intent(MainActivity.this,map.class);
                     Intent longitud = mapa.putExtra("longitud", direccion.get(0).getLongitude());
                     mapa.putExtra("latitud", direccion.get(0).getLatitude());
@@ -486,7 +495,6 @@ public class MainActivity extends AppCompatActivity{
                                 mapa.putExtra("direc", direc);
                                 startActivity(mapa);
                             }
-
                         }
                     } catch (JSONException e) {
                         Toast.makeText(getApplicationContext(),e.getMessage(), Toast.LENGTH_SHORT).show();

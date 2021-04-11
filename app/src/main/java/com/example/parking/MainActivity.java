@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -59,7 +58,7 @@ public class MainActivity extends AppCompatActivity{
     ListView listaAparca;ArrayList<String>listaAparcamiento;
     ArrayAdapter lisA;
     GoogleMap googleMap;
-    String address,marca,addressSelect,lat,lon;
+    String address,marca,addressSelect,lat,lon,mat;
     TextView in,textDesti,inParking;
     Button salir,btn2,btn3,btn4,btn5,btnAction,btnClean,btngo;
     EditText matricula;
@@ -94,6 +93,7 @@ public class MainActivity extends AppCompatActivity{
         matricula=(EditText)findViewById(R.id.matricula);
         matricula.setFilters(new InputFilter[] {new InputFilter.AllCaps()});//Mayusculas
         marca=getIntent().getStringExtra("direccion");
+        mat=getIntent().getStringExtra("mat");
         listaAparcamiento=new ArrayList<>();
         listaAparca=(ListView)findViewById(R.id.listAparca);listaAparca.setVisibility(View.GONE);
         listaAparca.setOnTouchListener(new View.OnTouchListener() {//hacer Scroll dentro del Listview
@@ -106,13 +106,15 @@ public class MainActivity extends AppCompatActivity{
 
 //        Drawable fondo=getResources().getDrawable(R.drawable.parking_3);
 //        init.setBackground(fondo);
-
+        if(mat!=null){ //mat of activity parking
+            matricula.setText(mat);mostra();
+        }
         if(marca!=null){
             matricula.setText(getIntent().getStringExtra("matricula"));
-            aparca.setVisibility(View.VISIBLE);
+            aparca.setVisibility(View.VISIBLE);btn3.setVisibility(View.VISIBLE);btn3.setText("ayuda");btnClean.setVisibility(View.GONE);btngo.setVisibility(View.GONE);
             matricula.setVisibility(View.GONE);in.setVisibility(View.VISIBLE);String mat=getIntent().getStringExtra("matricula");
             in.setText(mat+ " APARCADO EN \n\n"+marca);
-            btn2.setText("Otro vehículo");
+            btn2.setText("Nueva matrícula");btn2.setBackgroundColor(Color.parseColor("#7EB7D1"));imgParking.setVisibility(View.VISIBLE);
             historialAparcamiento("https://transpilas.000webhostapp.com/appAparca/vehiculo.json");
             btn2.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -122,7 +124,16 @@ public class MainActivity extends AppCompatActivity{
                     matricula.setText(getIntent().getStringExtra("matricula"));
                 }
             });
+            imgParking.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent parking = new Intent(MainActivity.this, Parking.class);
+                    parking.putExtra("mat",matricula.getText().toString());
+                    startActivity(parking);
+                }
+            });
         }
+
 
 //Todo:Select an item from a saved address
         listaAparca.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -139,7 +150,6 @@ public class MainActivity extends AppCompatActivity{
                         go("https://transpilas.000webhostapp.com/appAparca/vehiculo.json");
                     }
                 });
-
             }
         });
 //Todo:Delete an item from a saved address
@@ -178,59 +188,7 @@ public class MainActivity extends AppCompatActivity{
             }
             @Override
             public void afterTextChanged(Editable s) {
-                if(matricula.getText().length() > 6 && matricula.getText().length()<8 ) {
-                    btn2.setVisibility(View.VISIBLE);btn3.setVisibility(View.VISIBLE);
-                    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);//oculta teclado
-                    imm.hideSoftInputFromWindow(matricula.getWindowToken(), 0);
-                    in.setVisibility(View.VISIBLE);in.setText("¿Es correcta la matrícula de su vehículo?\n Puede añadir otro vehículo si lo desea.");
-                    btn2.setText("SI");btn3.setText("NO");
-                    //TODO:NO:
-                    btn3.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            in.setText("Modifique su matrícula");
-                            matricula.setText("");
-                        }
-                    });
-                    //TODO:SI:
-                    btn2.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            //consulta si existe la matricula en json si no hacer el insert:
-                            consulta("https://transpilas.000webhostapp.com/appAparca/vehiculo.json");
-
-                            aparca.setVisibility(View.VISIBLE);inParking.setVisibility(View.VISIBLE);imgParking.setVisibility(View.VISIBLE);
-                            btn3.setText("AYUDA");btn2.setText("historial");btn2.setVisibility(View.VISIBLE);
-                            in.setText(matricula.getText().toString() + " Pulse P para aparcar en vía pública.");
-                            btn5.setVisibility(View.VISIBLE);btn5.setText("Nueva matrícula");
-                            btn5.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    startActivity(new Intent(getApplicationContext(),MainActivity.class));
-                                }
-                            });
-                            matricula.setVisibility(View.GONE);
-                            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);//oculta teclado
-                            imm.hideSoftInputFromWindow(matricula.getWindowToken(), 0);
-                            btn2.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    listaAparca.setVisibility(View.VISIBLE); btn4.setVisibility(View.VISIBLE);btn2.setVisibility(View.GONE);
-                                    historialAparcamiento("https://transpilas.000webhostapp.com/appAparca/vehiculo.json");
-                                }
-                            });
-                        }
-                    });
-
-
-                }else if(matricula.getText().length()==0||matricula.getText().length()<7){// si esta vacia
-                    btn2.setVisibility(View.GONE);btn3.setVisibility(View.GONE);
-                }
-                if(matricula.getText().length()>=8){
-                    Toast.makeText(getApplicationContext(),"Matrícula demasiada larga.", Toast.LENGTH_SHORT).show();
-                    btn2.setVisibility(View.GONE);btn3.setVisibility(View.GONE);
-
-                }
+            mostra();
             }
         });
         //Todo: boton de ocultar el listView de historial de aparcamientos
@@ -512,6 +470,69 @@ public class MainActivity extends AppCompatActivity{
     }
 
 
+private  void mostra(){
+    if(matricula.getText().length() > 6 && matricula.getText().length()<8 ) {
+        btn2.setVisibility(View.VISIBLE);btn3.setVisibility(View.VISIBLE);imgParking.setVisibility(View.GONE);btnClean.setVisibility(View.GONE);btnAction.setVisibility(View.GONE);
+        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);//oculta teclado
+        imm.hideSoftInputFromWindow(matricula.getWindowToken(), 0);
+        in.setVisibility(View.VISIBLE);in.setText("¿Es correcta la matrícula de su vehículo?\n Puede añadir otro vehículo si lo desea.");
+        btn2.setText("SI");btn2.setBackgroundColor(Color.parseColor("#4CAF50"));btn3.setText("NO");
+        //TODO:NO:
+        btn3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                in.setText("Modifique su matrícula");
+                matricula.setText("");
+            }
+        });
+        //TODO:SI:
+        btn2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //consulta si existe la matricula en json si no hacer el insert:
+                consulta("https://transpilas.000webhostapp.com/appAparca/vehiculo.json");
+
+                aparca.setVisibility(View.VISIBLE);inParking.setVisibility(View.VISIBLE);imgParking.setVisibility(View.VISIBLE);btnClean.setVisibility(View.GONE);btngo.setVisibility(View.GONE);
+                btn3.setText("AYUDA");btn2.setText("historial");btn2.setVisibility(View.VISIBLE);
+                in.setText(matricula.getText().toString() + " Pulse P para aparcar en vía pública.");
+                btn5.setVisibility(View.VISIBLE);btn5.setText("Nueva matrícula");
+                btn5.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        startActivity(new Intent(getApplicationContext(),MainActivity.class));
+                    }
+                });
+                matricula.setVisibility(View.GONE);
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);//oculta teclado
+                imm.hideSoftInputFromWindow(matricula.getWindowToken(), 0);
+                btn2.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        listaAparca.setVisibility(View.VISIBLE); btn4.setVisibility(View.VISIBLE);btn2.setVisibility(View.GONE);
+                        historialAparcamiento("https://transpilas.000webhostapp.com/appAparca/vehiculo.json");
+                    }
+                });
+                imgParking.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent parking=new Intent(MainActivity.this, Parking.class);
+                        parking.putExtra("mat",matricula.getText().toString());
+                        startActivity(parking);
+                    }
+                });
+            }
+        });
+
+
+    }else if(matricula.getText().length()==0||matricula.getText().length()<7){// si esta vacia
+        btn2.setVisibility(View.GONE);btn3.setVisibility(View.GONE);
+    }
+    if(matricula.getText().length()>=8){
+        Toast.makeText(getApplicationContext(),"Matrícula demasiada larga.", Toast.LENGTH_SHORT).show();
+        btn2.setVisibility(View.GONE);btn3.setVisibility(View.GONE);
+
+    }
+}
 
 
 }

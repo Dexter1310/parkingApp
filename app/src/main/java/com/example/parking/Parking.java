@@ -1,53 +1,46 @@
 package com.example.parking;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
+
 import android.Manifest;
-import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.media.Image;
-import android.net.Uri;
-import android.os.Build;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.frosquivel.magicalcamera.MagicalCamera;
 import com.frosquivel.magicalcamera.MagicalPermissions;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.util.Locale;
 import java.util.Map;
 
 public class Parking extends AppCompatActivity {
     private final   String CARPETA_RAIZ="Android/data/com.example.proba/files/Pictures/";
     private final   String RUTA_IMAGEN=CARPETA_RAIZ+"foto";
     final int COD_FOTO=20;
-    Button btnVolver2, btn_camara;
+    Button btnVolver2, btn_camara,btn_recordatori;
     TextView textMat;
-   private MagicalCamera cam;
-   private MagicalPermissions magicalPermissions;
-   private ImageView imgMostra;
+    EditText text_recordatori;
+    private MagicalCamera cam;
+    private MagicalPermissions magicalPermissions;
+    private ImageView imgMostra;
     private final static int RESIZE_FHOTO=100;
-    Context context;
+    SqlLitePar bd;
+
 
 
     @Override
@@ -58,6 +51,8 @@ public class Parking extends AppCompatActivity {
         textMat=(TextView)findViewById(R.id.textMat);
         imgMostra = (ImageView)this.findViewById(R.id.imgMostrar);
         btn_camara = (Button) this.findViewById(R.id.btn_camara);
+        btn_recordatori = (Button)this.findViewById(R.id.btn_recordatori);
+        text_recordatori = (EditText)this.findViewById(R.id.text_recordatori);text_recordatori.setVisibility(View.GONE);
 
         String[] permissions = new String[] {
                 Manifest.permission.CAMERA,
@@ -67,21 +62,39 @@ public class Parking extends AppCompatActivity {
                 Manifest.permission.ACCESS_FINE_LOCATION
         };
 
+//        showRecord();
         magicalPermissions = new MagicalPermissions(this, permissions);
         cam=new MagicalCamera(this,RESIZE_FHOTO,magicalPermissions);
-
-
+        loadImage();
         btn_camara.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 cam.takePhoto();
-//          cargarImagen();
-
             }
-
         });
 
 
+        //Todo :Recordatori EditText visible
+        btn_recordatori.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                text_recordatori.setVisibility(View.VISIBLE);
+
+            }
+        });
+        text_recordatori.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+            @Override
+            public void afterTextChanged(Editable editable) {
+                changeTextRecordatori();
+
+            }
+        });
 
         textMat.setText(getIntent().getExtras().getString("mat"));
         //Todo: go menu return=>
@@ -95,36 +108,74 @@ public class Parking extends AppCompatActivity {
             }
         });
 
-//Drawable d = Drawable.createFromPath(RUTA_IMAGEN+"/foto.png" );
-//imgMostra.setImageDrawable(d);
 
-
-        File imgFile = new File(RUTA_IMAGEN+"/foto.jpg" );
-        Log.e("RUTA",imgFile.toString());
-
-        if(imgFile.exists()){
-
-            Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getName());
-            imgMostra.setImageBitmap(myBitmap);
-
+    }
+    private void changeTextRecordatori(){
+        if(text_recordatori.getText().length()>0){
+            btn_recordatori.setText("Guardar :)");
+            btn_recordatori.setBackgroundColor(Color.parseColor("#4CAF50"));
+            btn_recordatori.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    addRecord(textMat.getText().toString(),text_recordatori.getText().toString());
+                }
+            });
         }else{
-            Toast.makeText(this, "No hay imagen guardada", Toast.LENGTH_SHORT).show();
-            Toast.makeText(this, CARPETA_RAIZ+RUTA_IMAGEN+"/foto.jpg", Toast.LENGTH_SHORT).show();
+            btn_recordatori.setBackgroundColor(Color.parseColor("#FF6200EE"));
+            btn_recordatori.setText("Añadir recordatorio");
+        }
+    }
+
+    private void loadImage(){
+        File file = new File(Environment.getExternalStorageDirectory(),RUTA_IMAGEN+"/foto.jpg");
+        Bitmap bmp = BitmapFactory.decodeFile(file.getAbsolutePath());
+        if (bmp == null) {
+            imgMostra.setImageResource(R.drawable.parking_4); //Image default
+        } else {
+            imgMostra.setImageBitmap(bmp);
+        }
+    }
+//todo: ADD RECORDATORIE
+    public  void  addRecord(String mat,String record){
+   SqlLitePar  bd =new SqlLitePar(this,"parking.db",null, 1);
+     SQLiteDatabase base = bd.getWritableDatabase();
+     if(!mat.isEmpty() && !record.isEmpty()){
+         ContentValues add = new ContentValues();
+         add.put("matricula",mat);
+         add.put("recordatorio",record);
+         base.insert("parking",null,add);
+         base.close();
+         text_recordatori.setText("");
+         Toast.makeText(this, "Guardado", Toast.LENGTH_SHORT).show();
+
+     }else {
+         Toast.makeText(this, "No se pudo guardar", Toast.LENGTH_SHORT).show();
+     }
+
+    }
+    //todo: SHOW RECORDATORIE
+
+
+        public  void  showRecord(){
+      SqlLitePar bda = new SqlLitePar(this,"parking.bd",null,1);
+      SQLiteDatabase bs =bda.getWritableDatabase();
+      String matricula= textMat.getText().toString();
+      if(!matricula.isEmpty()){
+          Cursor f= bs.rawQuery("SELECT recordatorio from parking where matricula="+matricula,null);
+          if(f.moveToFirst()){
+              text_recordatori.setText(f.getString(1));
+              bs.close();
+          }
+      }else {
+          Toast.makeText(this, "no hay registros", Toast.LENGTH_SHORT).show();
+      }
+
         }
 
 
+//    }
 
-
-
-
-
-
-    }
-
-
-//
-//
-//    private void cargarImagen() {
+//    private void options() {
 //
 //        final CharSequence[] opciones={"Tomar Foto","Cargar Imagen","Cancelar"};
 //        final AlertDialog.Builder alertOpciones=new AlertDialog.Builder(Parking.this);
@@ -133,12 +184,11 @@ public class Parking extends AppCompatActivity {
 //            @Override
 //            public void onClick(DialogInterface dialogInterface, int i) {
 //                if (opciones[i].equals("Tomar Foto")){
-//                    shotPhoto();
+//                    cam.takePhoto();
 //                }else{
 //                    if (opciones[i].equals("Cargar Imagen")){
-//                        Intent intent=new Intent(Intent.ACTION_GET_CONTENT, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-//                        intent.setType("image/");
-//                        startActivityForResult(intent.createChooser(intent,"Seleccione la Aplicación"),COD_SELECCIONA);
+//                        loadImage();
+//
 //                    }else{
 //                        dialogInterface.dismiss();
 //                    }
@@ -148,75 +198,7 @@ public class Parking extends AppCompatActivity {
 //        alertOpciones.show();
 //
 //    }
-
-
-
-
-
-    private void shotPhoto(String path) {
-        File fileImagen=new File(Environment.getExternalStorageDirectory(),RUTA_IMAGEN);
-        boolean isCreada=fileImagen.exists();
-        String nombreImagen="";
-        if(isCreada==false){
-            isCreada=fileImagen.mkdirs();
-        }
-        if(isCreada==true){
-            nombreImagen=(System.currentTimeMillis()/1000)+".jpg";
-        }
-        path=Environment.getExternalStorageDirectory()+
-                File.separator+RUTA_IMAGEN+File.separator+nombreImagen;
-
-        File file=new File(path);
-
-        Intent intent=null;
-        intent=new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.N)
-        {
-            String authorities=getApplicationContext().getPackageName()+".provider";
-            Uri imageUri=FileProvider.getUriForFile(this,authorities,file);
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-        }else
-        {
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(file));
-        }
-        startActivityForResult(intent,COD_FOTO);
-
-    }
-
-//        @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
 //
-//            if (resultCode==RESULT_OK) {
-//
-//                switch (requestCode) {
-//                    case COD_SELECCIONA:
-//                        Uri miPath = data.getData();
-//                        imgMostra.setImageURI(miPath);
-//                        break;
-//
-//                    case COD_FOTO:
-//                        MediaScannerConnection.scanFile(this, new String[]{path}, null,
-//                                new MediaScannerConnection.OnScanCompletedListener() {
-//                                    @Override
-//                                    public void onScanCompleted(String path, Uri uri) {
-//                                        Log.i("Ruta de almacenamiento", "Path: " + path);
-//                                    }
-//                                });
-//
-//                        Bitmap bitmap = BitmapFactory.decodeFile(path);
-//                        imgMostra.setImageBitmap(bitmap);
-//
-//                        break;
-//                }
-//
-//
-//            }
-//    }
-//
-//
-//
-
 
 
 
@@ -234,7 +216,7 @@ public class Parking extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
 
-
+        btn_camara.setVisibility(View.VISIBLE);
         cam.resultPhoto(requestCode, resultCode, data);
 
         imgMostra.setImageBitmap(cam.getPhoto());
@@ -253,6 +235,7 @@ public class Parking extends AppCompatActivity {
         String s = file.getAbsolutePath();
         System.err.print("Path of saved image." + s);
         try {
+            Toast.makeText(getApplicationContext(), "Captura guardada.", Toast.LENGTH_SHORT).show();
             FileOutputStream out = new FileOutputStream(file);
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
             out.flush();
@@ -261,39 +244,10 @@ public class Parking extends AppCompatActivity {
 
         }
 
-
         cam.resultPhoto(requestCode, resultCode, data, MagicalCamera.ORIENTATION_ROTATE_180);
         String path = cam.savePhotoInMemoryDevice(cam.getPhoto(), "myTestPhotoName", MagicalCamera.PNG, true);
 
     }
-
-
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//
-//        super.onActivityResult(requestCode, resultCode, data);
-//
-//        if(resultCode==RESULT_OK){
-//            cam.resultPhoto(requestCode,resultCode,data);
-//
-////            Toast.makeText(this, requestCode, Toast.LENGTH_SHORT).show();
-//
-//            imgMostra.setImageBitmap(cam.getPhoto());
-//            String path= cam.savePhotoInMemoryDevice(cam.getPhoto(),"photo","ff",MagicalCamera.JPEG,true);
-//
-//            if(path!=null){
-//                Toast.makeText(this, "the photo is save", Toast.LENGTH_SHORT).show();
-//            }else{
-//                Toast.makeText(this, "The photo dont write", Toast.LENGTH_SHORT).show();
-//            }
-//
-//        }else{
-//            Toast.makeText(this, "No realizada", Toast.LENGTH_SHORT).show();
-//        }
-//    }
-
-
-
 
 
 

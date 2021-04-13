@@ -104,8 +104,6 @@ public class MainActivity extends AppCompatActivity{
             }
         });
 
-//        Drawable fondo=getResources().getDrawable(R.drawable.parking_3);
-//        init.setBackground(fondo);
         if(mat!=null){ //mat of activity parking
             matricula.setText(mat);mostra();
         }

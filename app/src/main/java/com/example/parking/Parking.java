@@ -61,8 +61,8 @@ public class Parking extends AppCompatActivity {
                 Manifest.permission.ACCESS_COARSE_LOCATION,
                 Manifest.permission.ACCESS_FINE_LOCATION
         };
-
-//        showRecord();
+        textMat.setText(getIntent().getExtras().getString("mat"));
+        showRecord();
         magicalPermissions = new MagicalPermissions(this, permissions);
         cam=new MagicalCamera(this,RESIZE_FHOTO,magicalPermissions);
         loadImage();
@@ -96,7 +96,7 @@ public class Parking extends AppCompatActivity {
             }
         });
 
-        textMat.setText(getIntent().getExtras().getString("mat"));
+
         //Todo: go menu return=>
         btnVolver2.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -108,12 +108,26 @@ public class Parking extends AppCompatActivity {
             }
         });
 
+        //Todo: clean Recordatori
+        if(btn_recordatori.getText().toString() == "Nuevo recordatorio"){
+            btn_recordatori.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    text_recordatori.setText("");
+
+                }
+            });
+        }
+
+
+
+
 
     }
     private void changeTextRecordatori(){
         if(text_recordatori.getText().length()>0){
-            btn_recordatori.setText("Guardar :)");
-            btn_recordatori.setBackgroundColor(Color.parseColor("#4CAF50"));
+            btn_recordatori.setText("Guardar Recordatorio:)");
+            btn_recordatori.setBackgroundColor(Color.parseColor("#FFC300"));
             btn_recordatori.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -127,7 +141,7 @@ public class Parking extends AppCompatActivity {
     }
 
     private void loadImage(){
-        File file = new File(Environment.getExternalStorageDirectory(),RUTA_IMAGEN+"/foto.jpg");
+        File file = new File(Environment.getExternalStorageDirectory(),RUTA_IMAGEN+"/"+textMat.getText().toString()+".jpg");
         Bitmap bmp = BitmapFactory.decodeFile(file.getAbsolutePath());
         if (bmp == null) {
             imgMostra.setImageResource(R.drawable.parking_4); //Image default
@@ -145,32 +159,41 @@ public class Parking extends AppCompatActivity {
          add.put("recordatorio",record);
          base.insert("parking",null,add);
          base.close();
-         text_recordatori.setText("");
-         Toast.makeText(this, "Guardado", Toast.LENGTH_SHORT).show();
+         text_recordatori.setText(record);
+         Toast.makeText(this, "GUARDADO:\n\n "+record, Toast.LENGTH_SHORT).show();
 
      }else {
-         Toast.makeText(this, "No se pudo guardar", Toast.LENGTH_SHORT).show();
+         Toast.makeText(this, "Escriba recordatorio", Toast.LENGTH_SHORT).show();
+
      }
 
     }
     //todo: SHOW RECORDATORIE
 
-
         public  void  showRecord(){
-      SqlLitePar bda = new SqlLitePar(this,"parking.bd",null,1);
+      SqlLitePar bda = new SqlLitePar(this,"parking.db",null,1);
       SQLiteDatabase bs =bda.getWritableDatabase();
       String matricula= textMat.getText().toString();
+
       if(!matricula.isEmpty()){
-          Cursor f= bs.rawQuery("SELECT recordatorio from parking where matricula="+matricula,null);
-          if(f.moveToFirst()){
-              text_recordatori.setText(f.getString(1));
+          String[] args = new String[] {matricula};
+          Cursor f= bs.rawQuery(" SELECT * from parking where matricula=? " ,args);
+          if(f.moveToLast()){
+             text_recordatori.setText(f.getString(1));
               bs.close();
+              text_recordatori.setVisibility(View.VISIBLE);
+              btn_recordatori.setText("Nuevo recordatorio");
+
           }
+
       }else {
+          text_recordatori.setVisibility(View.GONE);
           Toast.makeText(this, "no hay registros", Toast.LENGTH_SHORT).show();
       }
 
+
         }
+
 
 
 //    }
@@ -229,7 +252,7 @@ public class Parking extends AppCompatActivity {
             isCreada=fileImagen.mkdirs();
         }
         if(isCreada==true){
-            nombreImagen="foto.jpg";
+            nombreImagen=textMat.getText().toString()+".jpg";
         }
         File file = new File(fileImagen, nombreImagen);
         String s = file.getAbsolutePath();

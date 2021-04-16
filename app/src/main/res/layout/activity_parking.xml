@@ -19,28 +19,6 @@ tools:context=".MainActivity">
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:layout_marginBottom="4dp"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btnVolver2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:layout_marginRight="5dp"
-                android:layout_weight="1"
-                android:paddingLeft="0dp"
-                android:paddingRight="0dp"
-                android:text="Volver"
-                android:textSize="9sp"
-                app:backgroundTint="#4CAF50" />
-
-        </LinearLayout>
 
 
 
@@ -48,6 +26,7 @@ tools:context=".MainActivity">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:gravity="center"
             android:orientation="horizontal"
             android:layout_marginBottom="5dp">
@@ -78,6 +57,27 @@ tools:context=".MainActivity">
                 android:src="@drawable/ic_launcher_foreground" />
 
         </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="4dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnVolver2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="25dp"
+                android:layout_marginRight="25dp"
+                android:layout_weight="1"
+                android:text="Volver"
+                android:textSize="18sp"
+                app:backgroundTint="#4CAF50" />
+
+        </LinearLayout>
+
 
 
         <LinearLayout

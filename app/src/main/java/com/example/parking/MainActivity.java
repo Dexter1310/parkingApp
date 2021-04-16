@@ -24,6 +24,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -193,6 +194,8 @@ public class MainActivity extends AppCompatActivity{
         btn4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(600, 600);
+                imgParking.setLayoutParams(layoutParams);aparca.setLayoutParams(layoutParams);
                 btnClean.setVisibility(View.GONE);btnAction.setVisibility(View.GONE); textDesti.setVisibility(View.GONE);btngo.setVisibility(View.GONE);
                 btn4.setVisibility(View.GONE);btn2.setVisibility(View.VISIBLE);
                 listaAparca.setVisibility(View.GONE);lisA.clear();
@@ -505,7 +508,10 @@ private  void mostra(){
                 imm.hideSoftInputFromWindow(matricula.getWindowToken(), 0);
                 btn2.setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public void onClick(View v) {
+                    public void onClick(View v) {//todo:list visible addresses and resize imageViews more small
+                        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(300, 300);
+                        layoutParams.setMargins(10, 30, 10, 30);
+                        imgParking.setLayoutParams(layoutParams);aparca.setLayoutParams(layoutParams);
                         listaAparca.setVisibility(View.VISIBLE); btn4.setVisibility(View.VISIBLE);btn2.setVisibility(View.GONE);
                         historialAparcamiento("https://transpilas.000webhostapp.com/appAparca/vehiculo.json");
                     }

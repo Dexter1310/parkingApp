@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity{
                 return false;
             }
         });
-
+        resizeImage(600,600);
         if(mat!=null){ //mat of activity parking
             matricula.setText(mat);mostra();
         }
@@ -138,6 +138,7 @@ public class MainActivity extends AppCompatActivity{
         listaAparca.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                resizeImage(250,250);
                 addressSelect=listaAparcamiento.get(position);
                 textDesti.setVisibility(View.VISIBLE);textDesti.setText("Aparcamiento seleccionado\n "+addressSelect);
                 btnClean.setVisibility(View.GONE);btnAction.setVisibility(View.GONE);
@@ -155,6 +156,7 @@ public class MainActivity extends AppCompatActivity{
         listaAparca.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long l) {
+                resizeImage(300,300);
                 String addressDelete=listaAparcamiento.get(position);
                 textDesti.setVisibility(View.VISIBLE);textDesti.setText("Eliminar aparcamiento\n "+addressDelete);
                 btnAction.setVisibility(View.VISIBLE);btnAction.setText("Elimina aparcamiento");btnAction.setBackgroundColor(Color.parseColor("#FF0000"));
@@ -194,8 +196,7 @@ public class MainActivity extends AppCompatActivity{
         btn4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(600, 600);
-                imgParking.setLayoutParams(layoutParams);aparca.setLayoutParams(layoutParams);
+                resizeImage(600,600);
                 btnClean.setVisibility(View.GONE);btnAction.setVisibility(View.GONE); textDesti.setVisibility(View.GONE);btngo.setVisibility(View.GONE);
                 btn4.setVisibility(View.GONE);btn2.setVisibility(View.VISIBLE);
                 listaAparca.setVisibility(View.GONE);lisA.clear();
@@ -509,9 +510,7 @@ private  void mostra(){
                 btn2.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {//todo:list visible addresses and resize imageViews more small
-                        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(300, 300);
-                        layoutParams.setMargins(10, 30, 10, 30);
-                        imgParking.setLayoutParams(layoutParams);aparca.setLayoutParams(layoutParams);
+                        resizeImage(300,300);
                         listaAparca.setVisibility(View.VISIBLE); btn4.setVisibility(View.VISIBLE);btn2.setVisibility(View.GONE);
                         historialAparcamiento("https://transpilas.000webhostapp.com/appAparca/vehiculo.json");
                     }
@@ -538,5 +537,10 @@ private  void mostra(){
     }
 }
 
+public void resizeImage(int width,int height){
+    LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(width, height);
+    layoutParams.setMargins(10, 30, 10, 30);
+    imgParking.setLayoutParams(layoutParams);aparca.setLayoutParams(layoutParams);
+}
 
 }

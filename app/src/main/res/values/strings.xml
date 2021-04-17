@@ -10,4 +10,27 @@
 
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+
+<!--    Todo: main-->
+    <string name="textInforma1"> Pulse P para ubicar su vehículo.</string>
+    <string name="textInforma2">¿Es correcta la matrícula de su vehículo?
+ Puede añadir otro vehículo si lo desea.</string>
+    <string name="textInformaParking">Pulse Car para aparcar en parking.</string>
+    <string name="textEditMat"> Escriba su matrícula</string>
+    <string name="textDestinity">Ir al sitio</string>
+    <string name="help">Ayuda</string>
+    <string name="aparcado_en">APARCADO EN</string>
+    <string name="Nueva_matrícula">Nueva matrícula</string>
+    <string name="aparcamiento_seleccionado">Aparcamiento seleccionado</string>
+    <string name="Eliminar_aparcamiento">Eliminar aparcamiento</string>
+    <string name="Elimina_aparcamiento">Elimina aparcamiento</string>
+    <string name="Limpiar_Historial">Limpiar Historial</string>
+    <string name="Historial">Historial</string>
+    <string name="Matricula_demasiada_larga">Matrícula demasiada larga.</string>
+    <string name="Modifique_su_matrícula">Modifique su matrícula</string>
+    <string name="Historial_Eliminado">Historial Eliminado</string>
+    <string name="Se_ha_eliminado_la_direccion">Se ha eliminado la dirección</string>
+    <string name="No">No</string>
+    <string name="si">Si</string>
+
 </resources>

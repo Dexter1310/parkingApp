@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity{
     ArrayAdapter lisA;
     GoogleMap googleMap;
     String address,marca,addressSelect,lat,lon,mat;
-    TextView in,textDesti,inParking;
+    TextView info2,textDesti,inParking;
     Button salir,btn2,btn3,btn4,btn5,btnAction,btnClean,btngo;
     EditText matricula;
     List<Address> direccion;
@@ -80,11 +80,11 @@ public class MainActivity extends AppCompatActivity{
         init=(ScrollView)findViewById(R.id.init);
         imgParking=(ImageView)findViewById(R.id.ImgParking);imgParking.setVisibility(View.GONE);
         aparca=(ImageView)findViewById(R.id.ImgAparca);aparca.setVisibility(View.GONE);
-        in=(TextView)findViewById(R.id.informa);in.setVisibility(View.GONE);
+        info2=(TextView)findViewById(R.id.informa);info2.setVisibility(View.GONE);
         inParking=(TextView)findViewById(R.id.informaParking);inParking.setVisibility(View.GONE);
         textDesti=(TextView)findViewById(R.id.textDestinity);textDesti.setVisibility(View.GONE);
         salir=(Button)findViewById(R.id.btnSalir);
-        btn2=(Button)findViewById(R.id.btn2);btn2.setText("ayuda");
+        btn2=(Button)findViewById(R.id.btn2);btn2.setText(R.string.help);
         btn3=(Button)findViewById(R.id.btn3);btn3.setVisibility(View.GONE);
         btn5=(Button)findViewById(R.id.btn5);btn5.setVisibility(View.GONE);
         btn4=(Button)findViewById(R.id.btnOcultHistori);btn4.setVisibility(View.GONE);
@@ -110,16 +110,16 @@ public class MainActivity extends AppCompatActivity{
         }
         if(marca!=null){
             matricula.setText(getIntent().getStringExtra("matricula"));
-            aparca.setVisibility(View.VISIBLE);btn3.setVisibility(View.VISIBLE);btn3.setText("ayuda");btnClean.setVisibility(View.GONE);btngo.setVisibility(View.GONE);
-            matricula.setVisibility(View.GONE);in.setVisibility(View.VISIBLE);String mat=getIntent().getStringExtra("matricula");
-            in.setText(mat+ " APARCADO EN \n\n"+marca);
-            btn2.setText("Nueva matrícula");btn2.setBackgroundColor(Color.parseColor("#7EB7D1"));imgParking.setVisibility(View.VISIBLE);
+            aparca.setVisibility(View.VISIBLE);btn3.setVisibility(View.VISIBLE);btn3.setText(R.string.help);btnClean.setVisibility(View.GONE);btngo.setVisibility(View.GONE);
+            matricula.setVisibility(View.GONE);info2.setVisibility(View.VISIBLE);String mat=getIntent().getStringExtra("matricula");
+            info2.setText(mat +"\n"+ getString(R.string.aparcado_en) +"\n\n"+marca);
+            btn2.setText(R.string.Nueva_matrícula);btn2.setBackgroundColor(Color.parseColor("#7EB7D1"));imgParking.setVisibility(View.VISIBLE);
             historialAparcamiento("https://transpilas.000webhostapp.com/appAparca/vehiculo.json");
             btn2.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     aparca.setVisibility(View.GONE);listaAparca.setVisibility(View.GONE);btngo.setVisibility(View.GONE);textDesti.setVisibility(View.GONE);
-                    matricula.setVisibility(View.VISIBLE);in.setVisibility(View.GONE);
+                    matricula.setVisibility(View.VISIBLE);info2.setVisibility(View.GONE);
                     matricula.setText(getIntent().getStringExtra("matricula"));
                 }
             });
@@ -140,7 +140,8 @@ public class MainActivity extends AppCompatActivity{
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 resizeImage(250,250);
                 addressSelect=listaAparcamiento.get(position);
-                textDesti.setVisibility(View.VISIBLE);textDesti.setText("Aparcamiento seleccionado\n "+addressSelect);
+                textDesti.setVisibility(View.VISIBLE);textDesti.setText(getString(R.string.aparcamiento_seleccionado)+"\n "+addressSelect);
+                textDesti.setTextColor(Color.parseColor("#4CAF50"));
                 btnClean.setVisibility(View.GONE);btnAction.setVisibility(View.GONE);
                 btngo.setVisibility(View.VISIBLE);
                 btngo.setBackgroundColor(Color.parseColor("#4CAF50"));
@@ -158,9 +159,10 @@ public class MainActivity extends AppCompatActivity{
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long l) {
                 resizeImage(300,300);
                 String addressDelete=listaAparcamiento.get(position);
-                textDesti.setVisibility(View.VISIBLE);textDesti.setText("Eliminar aparcamiento\n "+addressDelete);
-                btnAction.setVisibility(View.VISIBLE);btnAction.setText("Elimina aparcamiento");btnAction.setBackgroundColor(Color.parseColor("#FF0000"));
-                btnClean.setVisibility(View.VISIBLE);btnClean.setText("Limpiar Historial");btngo.setVisibility(View.GONE);
+                textDesti.setVisibility(View.VISIBLE);textDesti.setText(getString(R.string.Eliminar_aparcamiento)+"\n "+addressDelete);
+                textDesti.setTextColor(Color.parseColor("red"));
+                btnAction.setVisibility(View.VISIBLE);btnAction.setText(getString(R.string.Elimina_aparcamiento));btnAction.setBackgroundColor(Color.parseColor("#FF0000"));
+                btnClean.setVisibility(View.VISIBLE);btnClean.setText(R.string.Limpiar_Historial);btngo.setVisibility(View.GONE);
                 btnAction.setOnClickListener(new View.OnClickListener() {//limpia registro de aparcamiento
                     @Override
                     public void onClick(View view) {
@@ -227,7 +229,7 @@ public class MainActivity extends AppCompatActivity{
                             e.printStackTrace();
                         }
                     }else{
-                        in.setText("No ha sido posible la ubicación");
+                        info2.setText("No ha sido posible la ubicación");
                     }
                 }
             });
@@ -241,13 +243,11 @@ public class MainActivity extends AppCompatActivity{
                String n= String.valueOf(listaAparcamiento.size());
 
                 if(listaAparcamiento.size()>10){//MAX PARKINGS FOR ENROLLMENT
-                    in.setTextColor(Color.parseColor("red"));
-                    in.setText("El aparcamiento no se ha registrado del V. "+matricula.getText()+", por favor elimine registro y vuelva a intentarlo.");
+                    info2.setTextColor(Color.parseColor("red"));
+                    info2.setText("El aparcamiento no se ha registrado del V. "+matricula.getText()+", por favor elimine registro y vuelva a intentarlo.");
                     Toast.makeText(MainActivity.this, "Ha alcanzado el límine de registros de aparcamientos en el historial." +
                             "\nPuede borrar algún registro y continuar.", Toast.LENGTH_SHORT).show();
                 }else{
-//                    Toast.makeText(getApplicationContext(),"Ubicación guardada latitud:"+direccion.get(0).getLatitude()+" longitud:"+
-//                            direccion.get(0).getLongitude(), Toast.LENGTH_SHORT).show();
                     Intent mapa=new Intent(MainActivity.this,map.class);
                     Intent longitud = mapa.putExtra("longitud", direccion.get(0).getLongitude());
                     mapa.putExtra("latitud", direccion.get(0).getLatitude());
@@ -335,11 +335,11 @@ public class MainActivity extends AppCompatActivity{
             @Override
             public void onResponse(String response) {
                if(del=="2"){
-                   Toast.makeText(MainActivity.this, "Historial Eliminado", Toast.LENGTH_SHORT).show();
+                   Toast.makeText(MainActivity.this, R.string.Historial_Eliminado, Toast.LENGTH_SHORT).show();
                    btnClean.setVisibility(View.GONE);btnAction.setVisibility(View.GONE); btn4.setVisibility(View.GONE);textDesti.setVisibility(View.GONE); listaAparca.setVisibility(View.GONE);
                }else{
-                   Toast.makeText(MainActivity.this, "Se ha eliminado la dirección "+del, Toast.LENGTH_SHORT).show();
-                   int num = listaAparcamiento.size();in.setText("Se ha eliminado la dirección "+del);in.setTextColor(Color.parseColor("blue"));
+                   Toast.makeText(MainActivity.this, getString(R.string.Se_ha_eliminado_la_direccion)+del, Toast.LENGTH_SHORT).show();
+                   int num = listaAparcamiento.size();info2.setText(getString(R.string.Se_ha_eliminado_la_direccion)+del);info2.setTextColor(Color.parseColor("blue"));
                    historialAparcamiento("https://transpilas.000webhostapp.com/appAparca/vehiculo.json");//reload and update arrayList
                    listaAparcamiento.clear();
                    listaAparcamiento.addAll(listaAparcamiento);
@@ -477,13 +477,13 @@ private  void mostra(){
         btn2.setVisibility(View.VISIBLE);btn3.setVisibility(View.VISIBLE);imgParking.setVisibility(View.GONE);btnClean.setVisibility(View.GONE);btnAction.setVisibility(View.GONE);
         InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);//oculta teclado
         imm.hideSoftInputFromWindow(matricula.getWindowToken(), 0);
-        in.setVisibility(View.VISIBLE);in.setText("¿Es correcta la matrícula de su vehículo?\n Puede añadir otro vehículo si lo desea.");
-        btn2.setText("SI");btn2.setBackgroundColor(Color.parseColor("#4CAF50"));btn3.setText("NO");
+        info2.setVisibility(View.VISIBLE);info2.setText(R.string.textInforma2);
+        btn2.setText(R.string.si);btn2.setBackgroundColor(Color.parseColor("#4CAF50"));btn3.setText(R.string.No);
         //TODO:NO:
         btn3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                in.setText("Modifique su matrícula");
+                info2.setText(R.string.Nueva_matrícula);
                 matricula.setText("");
             }
         });
@@ -495,9 +495,9 @@ private  void mostra(){
                 consulta("https://transpilas.000webhostapp.com/appAparca/vehiculo.json");
 
                 aparca.setVisibility(View.VISIBLE);inParking.setVisibility(View.VISIBLE);imgParking.setVisibility(View.VISIBLE);btnClean.setVisibility(View.GONE);btngo.setVisibility(View.GONE);
-                btn3.setText("AYUDA");btn2.setText("historial");btn2.setVisibility(View.VISIBLE);
-                in.setText(matricula.getText().toString() + " Pulse P para aparcar en vía pública.");
-                btn5.setVisibility(View.VISIBLE);btn5.setText("Nueva matrícula");
+                btn3.setText(R.string.help);btn2.setText(R.string.Historial);btn2.setVisibility(View.VISIBLE);
+                info2.setText(matricula.getText().toString() +"\t"+ getString(R.string.textInforma1));info2.setTextColor(Color.parseColor("black"));
+                btn5.setVisibility(View.VISIBLE);btn5.setText(R.string.Nueva_matrícula);
                 btn5.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -531,7 +531,7 @@ private  void mostra(){
         btn2.setVisibility(View.GONE);btn3.setVisibility(View.GONE);
     }
     if(matricula.getText().length()>=8){
-        Toast.makeText(getApplicationContext(),"Matrícula demasiada larga.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(),R.string.Matricula_demasiada_larga, Toast.LENGTH_SHORT).show();
         btn2.setVisibility(View.GONE);btn3.setVisibility(View.GONE);
 
     }

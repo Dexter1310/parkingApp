@@ -33,4 +33,8 @@
     <string name="No">No</string>
     <string name="si">Si</string>
 
+<!--    todo : parkikg-->
+
+    <string name="grabar_audio">Grabar audio</string>
+
 </resources>

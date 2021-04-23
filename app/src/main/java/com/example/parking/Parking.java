@@ -1,15 +1,20 @@
 package com.example.parking;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.media.MediaPlayer;
+import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.Editable;
@@ -24,8 +29,10 @@ import android.widget.Toast;
 import com.frosquivel.magicalcamera.MagicalCamera;
 import com.frosquivel.magicalcamera.MagicalPermissions;
 
+
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Map;
 
 public class Parking extends AppCompatActivity {
@@ -37,8 +44,11 @@ public class Parking extends AppCompatActivity {
     EditText text_recordatori;
     private MagicalCamera cam;
     private MagicalPermissions magicalPermissions;
-    private ImageView imgMostra;
+    private ImageView imgMostra,imgRec,imgPlay;
     private final static int RESIZE_FHOTO=100;
+    private MediaRecorder grabacion;
+    private String fileSound = null;
+
     SqlLitePar bd;
 
 
@@ -50,6 +60,8 @@ public class Parking extends AppCompatActivity {
         btnVolver2=(Button)findViewById(R.id.btnVolver2);
         textMat=(TextView)findViewById(R.id.textMat);
         imgMostra = (ImageView)this.findViewById(R.id.imgMostrar);
+        imgRec = (ImageView)this.findViewById(R.id.rec);
+        imgPlay = (ImageView)this.findViewById(R.id.play);
         btn_camara = (Button) this.findViewById(R.id.btn_camara);
         btn_recordatori = (Button)this.findViewById(R.id.btn_recordatori);
         text_recordatori = (EditText)this.findViewById(R.id.text_recordatori);text_recordatori.setVisibility(View.GONE);
@@ -59,7 +71,8 @@ public class Parking extends AppCompatActivity {
                 Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
                 Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.ACCESS_FINE_LOCATION
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.RECORD_AUDIO
         };
         textMat.setText(getIntent().getExtras().getString("mat"));
         showRecord();
@@ -119,7 +132,25 @@ public class Parking extends AppCompatActivity {
             });
         }
 
+        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat .requestPermissions(Parking.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO}, 1000);
+        }
 
+        imgRec.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                recorder(view);
+            }
+        });
+
+        imgPlay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                reproducir(view);
+            }
+        });
+
+        fileSound=getExternalFilesDir("/").getAbsolutePath()+textMat.getText().toString()+".mp3";
 
 
 
@@ -270,6 +301,46 @@ public class Parking extends AppCompatActivity {
         cam.resultPhoto(requestCode, resultCode, data, MagicalCamera.ORIENTATION_ROTATE_180);
         String path = cam.savePhotoInMemoryDevice(cam.getPhoto(), "myTestPhotoName", MagicalCamera.PNG, true);
 
+    }
+    public void recorder(View view){
+        if(grabacion == null){
+            grabacion = new MediaRecorder();
+            grabacion.setAudioSource(MediaRecorder.AudioSource.MIC);
+            grabacion.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+            grabacion.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
+            grabacion.setOutputFile(fileSound);
+            try{
+                grabacion.prepare();
+                grabacion.start();
+            } catch (IOException e){
+                e.printStackTrace();
+            }
+            imgRec.setImageResource(R.drawable.rec);
+            Toast.makeText(getApplicationContext(), "Grabando...", Toast.LENGTH_SHORT).show();
+        } else if(grabacion != null){
+            grabacion.stop();
+            grabacion.release();
+            grabacion = null;
+            imgRec.setImageResource(R.drawable.stop_rec);
+            Toast.makeText(getApplicationContext(), "Grabación finalizada", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void reproducir(View view) {
+        MediaPlayer mediaPlayer = new MediaPlayer();
+        try {
+            if(fileSound==null){
+                Toast.makeText(this, "No hay ninguna grabación.", Toast.LENGTH_SHORT).show();
+            }else{
+                mediaPlayer.setDataSource(fileSound);
+                mediaPlayer.prepare();
+            }
+
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+
+        mediaPlayer.start();
     }
 
 

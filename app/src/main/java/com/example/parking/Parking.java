@@ -16,6 +16,7 @@ import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -28,19 +29,22 @@ import android.widget.TextView;
 import android.widget.Toast;
 import com.frosquivel.magicalcamera.MagicalCamera;
 import com.frosquivel.magicalcamera.MagicalPermissions;
+import com.google.android.gms.tasks.OnCompleteListener;
 
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class Parking extends AppCompatActivity {
     private final   String CARPETA_RAIZ="Android/data/com.example.proba/files/Pictures/";
     private final   String RUTA_IMAGEN=CARPETA_RAIZ+"foto";
     final int COD_FOTO=20;
     Button btnVolver2, btn_camara,btn_recordatori;
-    TextView textMat;
+    TextView textMat,textAudio;
     EditText text_recordatori;
     private MagicalCamera cam;
     private MagicalPermissions magicalPermissions;
@@ -48,6 +52,14 @@ public class Parking extends AppCompatActivity {
     private final static int RESIZE_FHOTO=100;
     private MediaRecorder grabacion;
     private String fileSound = null;
+//    timer:
+    CountDownTimer countDownTimer;
+    CountDownTimer countReproduct;
+    long maxCounter = 10000000;
+    long diff = 1000;
+    int minut= 0;
+    String time= "";
+    boolean pause= false;
 
     SqlLitePar bd;
 
@@ -58,6 +70,7 @@ public class Parking extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_parking);
         btnVolver2=(Button)findViewById(R.id.btnVolver2);
+        textAudio=(TextView)findViewById(R.id.textView2);
         textMat=(TextView)findViewById(R.id.textMat);
         imgMostra = (ImageView)this.findViewById(R.id.imgMostrar);
         imgRec = (ImageView)this.findViewById(R.id.rec);
@@ -139,6 +152,7 @@ public class Parking extends AppCompatActivity {
         imgRec.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                fileSound=getExternalFilesDir("/").getAbsolutePath()+textMat.getText().toString()+".mp3";
                 recorder(view);
             }
         });
@@ -150,7 +164,7 @@ public class Parking extends AppCompatActivity {
             }
         });
 
-        fileSound=getExternalFilesDir("/").getAbsolutePath()+textMat.getText().toString()+".mp3";
+
 
 
 
@@ -185,11 +199,26 @@ public class Parking extends AppCompatActivity {
    SqlLitePar  bd =new SqlLitePar(this,"parking.db",null, 1);
      SQLiteDatabase base = bd.getWritableDatabase();
      if(!mat.isEmpty() && !record.isEmpty()){
-         ContentValues add = new ContentValues();
-         add.put("matricula",mat);
-         add.put("recordatorio",record);
-         base.insert("parking",null,add);
-         base.close();
+
+         //Todo: si existe el registro:
+         String matricula= textMat.getText().toString();
+         String[] args = new String[] {matricula};
+         Cursor f= base.rawQuery(" SELECT * from parking where matricula=? " ,args);
+         if(f.moveToLast()){//Update if exists row
+             ContentValues add = new ContentValues();
+             add.put("matricula",mat);
+             add.put("recordatorio",record);
+             base.update("parking", add, "recordatorio=?", new String[]{f.getString(1)});
+             base.close();
+         }else{//insert
+             ContentValues add = new ContentValues();
+             add.put("matricula",mat);
+             add.put("recordatorio",record);
+             base.insert("parking",null,add);
+             base.close();
+         }
+
+
          text_recordatori.setText(record);
          Toast.makeText(this, "GUARDADO:\n\n "+record, Toast.LENGTH_SHORT).show();
 
@@ -226,33 +255,6 @@ public class Parking extends AppCompatActivity {
         }
 
 
-
-//    }
-
-//    private void options() {
-//
-//        final CharSequence[] opciones={"Tomar Foto","Cargar Imagen","Cancelar"};
-//        final AlertDialog.Builder alertOpciones=new AlertDialog.Builder(Parking.this);
-//        alertOpciones.setTitle("Seleccione una Opción");
-//        alertOpciones.setItems(opciones, new DialogInterface.OnClickListener() {
-//            @Override
-//            public void onClick(DialogInterface dialogInterface, int i) {
-//                if (opciones[i].equals("Tomar Foto")){
-//                    cam.takePhoto();
-//                }else{
-//                    if (opciones[i].equals("Cargar Imagen")){
-//                        loadImage();
-//
-//                    }else{
-//                        dialogInterface.dismiss();
-//                    }
-//                }
-//            }
-//        });
-//        alertOpciones.show();
-//
-//    }
-//
 
 
 
@@ -312,17 +314,37 @@ public class Parking extends AppCompatActivity {
             try{
                 grabacion.prepare();
                 grabacion.start();
+
             } catch (IOException e){
                 e.printStackTrace();
             }
             imgRec.setImageResource(R.drawable.rec);
-            Toast.makeText(getApplicationContext(), "Grabando...", Toast.LENGTH_SHORT).show();
+
+            countDownTimer =  new CountDownTimer(maxCounter , diff ) {
+                public void onTick(long millisUntilFinished) {
+                    long diff = maxCounter - millisUntilFinished;
+                    long second= diff  / 1000;
+                    if(second>59){
+                        minut++;
+                        countDownTimer.onFinish();
+                        countDownTimer.start();
+                    }
+                    time=String.format("%02d", minut)+":" +String.format("%02d", second);
+                    textAudio.setText( "Grabando ... "+time);
+                }
+                public void onFinish() {
+                    textAudio.setText("stop "+ time);
+                    countDownTimer.cancel();
+                }
+
+            }.start();
+
         } else if(grabacion != null){
             grabacion.stop();
             grabacion.release();
             grabacion = null;
             imgRec.setImageResource(R.drawable.stop_rec);
-            Toast.makeText(getApplicationContext(), "Grabación finalizada", Toast.LENGTH_SHORT).show();
+            countDownTimer.onFinish();
         }
     }
 
@@ -333,8 +355,43 @@ public class Parking extends AppCompatActivity {
                 Toast.makeText(this, "No hay ninguna grabación.", Toast.LENGTH_SHORT).show();
             }else{
                 mediaPlayer.setDataSource(fileSound);
-                mediaPlayer.prepare();
+                    mediaPlayer.prepare();
+                countReproduct =  new CountDownTimer(maxCounter , diff ) {
+                    public void onTick(long millisUntilFinished) {
+                        long diff = maxCounter - millisUntilFinished;
+                        long second= diff  / 1000;
+                        if(second>59){
+                            minut++;
+                            countReproduct.onFinish();
+                            countReproduct.start();
+                        }
+                        time=String.format("%02d", minut)+":" +String.format("%02d", second);
+                        textAudio.setText( "Reproduciendo ... "+time);
+                    }
+                    public void onFinish() {
+                        textAudio.setText(time);
+                        countReproduct.cancel();
+                    }
+                }.start();
             }
+            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {//detected finish audio
+                public void onCompletion(MediaPlayer mp) {
+                    countReproduct.onFinish();
+                }
+            });
+
+            imgPlay.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (mediaPlayer.isPlaying()) {
+                        mediaPlayer.pause();
+                        countReproduct.onFinish();
+                    } else {
+                        mediaPlayer.start();
+                        countReproduct.start();
+                    }
+                }
+            });
 
         } catch (IOException e){
             e.printStackTrace();
